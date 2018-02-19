@@ -37,6 +37,7 @@ public class RestUtilsTests extends ESTestCase {
     }
 
     public void testDecodeQueryString() {
+    	//contract: test that the method decodeQueryString extract correctly the params of the string
         Map<String, String> params = new HashMap<>();
 
         String uri = "something?test=value";
@@ -63,6 +64,8 @@ public class RestUtilsTests extends ESTestCase {
     }
 
     public void testDecodeQueryStringEdgeCases() {
+    	//contract: test that the method decodeQueryString extract correctly the params of the string 
+    	//for some edgy cases not tested in testDecodeQueryString() 
         Map<String, String> params = new HashMap<>();
 
         String uri = "something?";
@@ -123,6 +126,8 @@ public class RestUtilsTests extends ESTestCase {
     }
 
     public void testCorsSettingIsARegex() {
+    	//contract: test that the method checkCorsSettingForRegex determine correctly if the CORS setting is a regex and return the rigth pattern
+    	//with the help of new assertions defined at the end of the class
         assertCorsSettingRegex("/foo/", Pattern.compile("foo"));
         assertCorsSettingRegex("/.*/", Pattern.compile(".*"));
         assertCorsSettingRegex("/https?:\\/\\/localhost(:[0-9]+)?/", Pattern.compile("https?:\\/\\/localhost(:[0-9]+)?"));
@@ -138,6 +143,7 @@ public class RestUtilsTests extends ESTestCase {
     }
 
     public void testCrazyURL() {
+    	//contract: test that the method decodeQueryString is right for a string full of special characters
         String host = "example.com";
         Map<String, String> params = new HashMap<>();
 
@@ -153,7 +159,8 @@ public class RestUtilsTests extends ESTestCase {
         assertThat(params.get("/?:@-._~!$'()* ,"), equalTo("/?:@-._~!$'()* ,=="));
         assertThat(params.size(), equalTo(1));
     }
-
+    
+    //some new assertions for testing purpose
     private void assertCorsSettingRegexIsNull(String settingsValue) {
         assertThat(RestUtils.checkCorsSettingForRegex(settingsValue), is(nullValue()));
     }
