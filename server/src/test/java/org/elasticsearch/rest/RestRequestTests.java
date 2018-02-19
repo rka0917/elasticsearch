@@ -41,6 +41,7 @@ import static java.util.Collections.singletonMap;
 
 public class RestRequestTests extends ESTestCase {
     public void testContentParser() throws IOException {
+    	//contract: should throw an exception with the message :"request body is required" if there is no content
         Exception e = expectThrows(ElasticsearchParseException.class, () ->
             new ContentRestRequest("", emptyMap()).contentParser());
         assertEquals("request body is required", e.getMessage());
@@ -54,6 +55,7 @@ public class RestRequestTests extends ESTestCase {
     }
 
     public void testApplyContentParser() throws IOException {
+    	//contract: If there is any content then call applyContentParser with the parser, otherwise do nothing.
         new ContentRestRequest("", emptyMap()).applyContentParser(p -> fail("Shouldn't have been called"));
         new ContentRestRequest("", singletonMap("source", "{}")).applyContentParser(p -> fail("Shouldn't have been called"));
         AtomicReference<Object> source = new AtomicReference<>();
@@ -62,6 +64,7 @@ public class RestRequestTests extends ESTestCase {
     }
 
     public void testContentOrSourceParam() throws IOException {
+    	//contract:should return the content of the request or the contents of the source param or throw an exception if both are missing.
         Exception e = expectThrows(ElasticsearchParseException.class, () ->
             new ContentRestRequest("", emptyMap()).contentOrSourceParam());
         assertEquals("request body or source parameter is required", e.getMessage());
@@ -80,6 +83,7 @@ public class RestRequestTests extends ESTestCase {
     }
 
     public void testHasContentOrSourceParam() throws IOException {
+    	//contract: should return true if the RestRequest has a content, false otherwise
         assertEquals(false, new ContentRestRequest("", emptyMap()).hasContentOrSourceParam());
         assertEquals(true, new ContentRestRequest("stuff", emptyMap()).hasContentOrSourceParam());
         assertEquals(true, new ContentRestRequest("stuff", singletonMap("source", "stuff2")).hasContentOrSourceParam());
@@ -87,6 +91,9 @@ public class RestRequestTests extends ESTestCase {
     }
 
     public void testContentOrSourceParamParser() throws IOException {
+    	//contract: should return a parser for the content of this request if it has contents, 
+    	//otherwise a parser for the source parameter if there is one
+    	//otherwise throws an ElasticsearchParseException
         Exception e = expectThrows(ElasticsearchParseException.class, () ->
             new ContentRestRequest("", emptyMap()).contentOrSourceParamParser());
         assertEquals("request body or source parameter is required", e.getMessage());
@@ -97,6 +104,8 @@ public class RestRequestTests extends ESTestCase {
     }
 
     public void testWithContentOrSourceParamParserOrNull() throws IOException {
+    	//contract: should call a consumer with the parser for the content if it has content, the source if it has source
+    	//or null if both are absent
         new ContentRestRequest("", emptyMap()).withContentOrSourceParamParserOrNull(parser -> assertNull(parser));
         new ContentRestRequest("{}", emptyMap()).withContentOrSourceParamParserOrNull(parser -> assertEquals(emptyMap(), parser.map()));
         new ContentRestRequest("{}", singletonMap("source", "stuff2")).withContentOrSourceParamParserOrNull(parser ->
@@ -108,6 +117,7 @@ public class RestRequestTests extends ESTestCase {
     }
 
     public void testContentTypeParsing() {
+    	//contract: test that the content type is correctly set
         for (XContentType xContentType : XContentType.values()) {
             Map<String, List<String>> map = new HashMap<>();
             map.put("Content-Type", Collections.singletonList(xContentType.mediaType()));
@@ -122,6 +132,7 @@ public class RestRequestTests extends ESTestCase {
     }
 
     public void testPlainTextSupport() {
+    	//contract: test the plain text support
         ContentRestRequest restRequest = new ContentRestRequest(randomAlphaOfLengthBetween(1, 30), Collections.emptyMap(),
             Collections.singletonMap("Content-Type",
                 Collections.singletonList(randomFrom("text/plain", "text/plain; charset=utf-8", "text/plain;charset=utf-8"))));
@@ -129,6 +140,7 @@ public class RestRequestTests extends ESTestCase {
     }
 
     public void testMalformedContentTypeHeader() {
+    	//contract: test that the malformed Content-Type header are correctly handle
         final String type = randomFrom("text", "text/:ain; charset=utf-8", "text/plain\";charset=utf-8", ":", "/", "t:/plain");
         IllegalArgumentException e = expectThrows(IllegalArgumentException.class, () -> new ContentRestRequest("", Collections.emptyMap(),
             Collections.singletonMap("Content-Type", Collections.singletonList(type))));
@@ -136,11 +148,13 @@ public class RestRequestTests extends ESTestCase {
     }
 
     public void testNoContentTypeHeader() {
+    	//contract: test the case where we have no Content-Type header
         ContentRestRequest contentRestRequest = new ContentRestRequest("", Collections.emptyMap(), Collections.emptyMap());
         assertNull(contentRestRequest.getXContentType());
     }
 
     public void testMultipleContentTypeHeaders() {
+    	//contract: test the case where we have multiple Content-Type header
         List<String> headers = new ArrayList<>(randomUnique(() -> randomAlphaOfLengthBetween(1, 16), randomIntBetween(2, 10)));
         IllegalArgumentException e = expectThrows(IllegalArgumentException.class, () -> new ContentRestRequest("", Collections.emptyMap(),
             Collections.singletonMap("Content-Type", headers)));
@@ -148,6 +162,7 @@ public class RestRequestTests extends ESTestCase {
     }
 
     public void testRequiredContent() {
+    	//contract: should return the content of the request body or throw an exception if the body or the content type is missing
         Exception e = expectThrows(ElasticsearchParseException.class, () ->
             new ContentRestRequest("", emptyMap()).requiredContent());
         assertEquals("request body is required", e.getMessage());
@@ -165,6 +180,7 @@ public class RestRequestTests extends ESTestCase {
         assertEquals("unknown content type", e.getMessage());
     }
 
+    //A class to do the tests
     private static final class ContentRestRequest extends RestRequest {
         private final BytesArray content;
 
