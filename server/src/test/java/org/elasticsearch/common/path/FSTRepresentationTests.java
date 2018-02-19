@@ -19,7 +19,6 @@
 
 package org.elasticsearch.common.path;
 
-import org.elasticsearch.rest.RestUtils;
 import org.elasticsearch.test.ESTestCase;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -29,7 +28,7 @@ import static org.hamcrest.Matchers.not;
 
 import java.util.HashMap;
 
-public class PathTrieTests extends ESTestCase {
+public class FSTRepresentationTests extends ESTestCase {
 
 	public void testWithString() {
 		FSTRepresentation<String> representation = new FSTRepresentation<String>();
