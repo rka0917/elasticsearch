@@ -7,6 +7,7 @@ import org.apache.lucene.util.fst.ByteSequenceOutputs;
 import org.apache.lucene.util.fst.FST;
 import org.apache.lucene.util.fst.FST.INPUT_TYPE;
 import org.apache.lucene.util.fst.Util;
+import org.elasticsearch.common.path.FSTRepresentation;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -21,54 +22,6 @@ import java.util.HashMap;
 
 public class FSTSkeleton<T> {
 
-	/**
-	 * Convert the value to a byte-array for storing
-	 * @param value The value to be converted to bytes
-	 * @return Returns the bytes of the given value, or null if something fails
-	 */
-	private byte[] valueToBytes(T value) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		ObjectOutput out = null;
-		byte[] ret = null;
-		try {
-		  out = new ObjectOutputStream(bos);
-		  out.writeObject(value);
-		  out.flush();
-		  ret = bos.toByteArray();
-		} catch (IOException e) {
-			try { bos.close(); } catch (IOException ex) { }
-		} finally {
-		  try { bos.close(); } catch (IOException ex) { }
-		}
-
-		return ret;
-	}
-
-	/**
-	 * Restore the stored byte-array into an object upon retrieval
-	 * @param bytes The bytes to restore
-	 * @return Returns the object represented by the bytes
-	 */
-	@SuppressWarnings("unchecked")
-	private T bytesToValue(byte[] bytes) {
-		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-		ObjectInput in = null;
-
-		T ret = null;
-		try {
-		  in = new ObjectInputStream(bis);
-		  ret = (T) in.readObject();
-		} catch (IOException | ClassNotFoundException e) {
-		} finally {
-		  try {
-		    if (in != null) {
-		      in.close();
-		    }
-		  } catch (IOException ex) { }
-		}
-
-		return ret;
-	}
 
 	/**
 	 * @param keys The keys to add to the FST
@@ -76,6 +29,8 @@ public class FSTSkeleton<T> {
 	 * @return Returns a FST containing the key-value pairs
 	 */
 	public FST<BytesRef> build(String[] keys, T[] values) {
+		FSTRepresentation<T> representation = new FSTRepresentation<T>();
+
 		HashMap<String, T> map = new HashMap<String, T>();
 		for (int i = 0; i < keys.length; i++) {
 			map.put(keys[i], values[i]);
@@ -89,7 +44,7 @@ public class FSTSkeleton<T> {
 			IntsRefBuilder scratchInts = new IntsRefBuilder();
 			for (String key : keys) {
 				BytesRef scratchBytes = new BytesRef(key);
-				byte[] value = valueToBytes(map.get(key));
+				byte[] value = representation.toBytes(map.get(key));
 				builder.add(Util.toIntsRef(scratchBytes, scratchInts), new BytesRef(value));
 			}
 			ret = builder.finish();
@@ -107,16 +62,18 @@ public class FSTSkeleton<T> {
 		FST<BytesRef> fst = stringSkeleton.build(inputValues, outputStringValues);
 
 		// Read values from the FST
+		FSTRepresentation<String> stringRepresentation = new FSTRepresentation<String>();
+
 		byte[] bytes = Util.get(fst, new BytesRef("dog")).bytes;
-		String stringValue = stringSkeleton.bytesToValue(bytes);
+		String stringValue = stringRepresentation.fromBytes(bytes);
 		System.out.println(stringValue.equals("1"));
 
 		bytes = Util.get(fst, new BytesRef("cat")).bytes;
-		stringValue = stringSkeleton.bytesToValue(bytes);
+		stringValue = stringRepresentation.fromBytes(bytes);
 		System.out.println(stringValue.equals("2"));
 
 		bytes = Util.get(fst, new BytesRef("dogs")).bytes;
-		stringValue = stringSkeleton.bytesToValue(bytes);
+		stringValue = stringRepresentation.fromBytes(bytes);
 		System.out.println(stringValue.equals("3"));
 
 		// Create a FST<int[]>
@@ -130,16 +87,18 @@ public class FSTSkeleton<T> {
 		fst = intArraySkeleton.build(inputValues, outputIntArrayValues);
 
 		// Read values from the FST
+		FSTRepresentation<int[]> intArrayRepresentation = new FSTRepresentation<int[]>();
+
 		bytes = Util.get(fst, new BytesRef("dog")).bytes;
-		int[] intArrayValue = intArraySkeleton.bytesToValue(bytes);
+		int[] intArrayValue = intArrayRepresentation.fromBytes(bytes);
 		System.out.println(intArrayValue[0] == 1 && intArrayValue[1] == 2 && intArrayValue[2] == 3);
 
 		bytes = Util.get(fst, new BytesRef("cat")).bytes;
-		intArrayValue = intArraySkeleton.bytesToValue(bytes);
+		intArrayValue = intArrayRepresentation.fromBytes(bytes);
 		System.out.println(intArrayValue[0] == 2 && intArrayValue[1] == 3 && intArrayValue[2] == 1);
 
 		bytes = Util.get(fst, new BytesRef("dogs")).bytes;
-		intArrayValue = intArraySkeleton.bytesToValue(bytes);
+		intArrayValue = intArrayRepresentation.fromBytes(bytes);
 		System.out.println(intArrayValue[0] == 3 && intArrayValue[1] == 1 && intArrayValue[2] == 2);
 	}
 
