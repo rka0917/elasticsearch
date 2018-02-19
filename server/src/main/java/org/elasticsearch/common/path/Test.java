@@ -8,7 +8,7 @@ public class Test {
 		// OuterClass<String> s = new OuterClass<String>("World");
 
 		// Instead we must use the builder
-		example.OuterClass.Builder<String> builder = new OuterClass.Builder<String>();
+		OuterClass.Builder<String> builder = new OuterClass.Builder<String>();
 
 		builder.add("Hello")
 		.add("again")
