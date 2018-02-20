@@ -136,6 +136,9 @@ https://drive.google.com/file/d/1jXFHhz-pjbl0Vh-n_Xb_yVVbpqKwTOoK/view?usp=shari
 
 This UML diagram shows how the class references have changed and also we can see that the respective newer test modules were added in order to ensure coverage. The major refactoring here is that the builder class that takes over the dependencies from the class PathTrie. And the newer FSTRepresentation added to the PathTrie.
 
+### Link to patch
+https://github.com/elastic/elasticsearch/compare/master...rka0917:master
+
 ## Switching to Lucene FST
 In the issue they said that they wanted to replace their current implementation for one using the FST class of the Apache Lucene library:
 > switch PathTrie over to using an FST from Lucene, rather than our own trie implementation
