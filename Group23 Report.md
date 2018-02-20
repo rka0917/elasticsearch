@@ -250,7 +250,7 @@ Rami - 6 hours
 #### writing documentation
 Anton - 3 hours
 
-Benjamin - 
+Benjamin - 13 hours
 
 Ganesh - 9 hours
 
