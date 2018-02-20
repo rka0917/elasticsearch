@@ -177,23 +177,37 @@ In the issue they said that they wanted to replace their current implementation 
 > switch PathTrie over to using an FST from Lucene, rather than our own trie implementation
 
 ### Carried out work in Lucene FST
-This issue turned out to be harder than expected. We implemented two versions that both solve parts of the requirement. But we were unable to implement the complete refactoring in the given time-frame.
+We have implemented two versions that separately solve a sub-problem of the PathTrie functional requirements. However, this issue turned out to be harder than expected. Therefore we were unable to complete the refactoring in the given time-frame and had to leave the solutions as independent files.
 
-Initially we had the issue that PathTrie is a generic class that may take any type of data. This is not supported by the Lucene FST library which expects the labels to be one of; byte sequence, character sequence, integer sequence, no output, pairs or positive integers. The library does however have a public interface Outputs<T> which is left for the developer to implement. After much struggle with the implementation and discussions within the group we came up with the work-around of converting the data into byte-arrays while storing them and then converting them back to to objects upon retrieval. This change was implemented and integrated into the PathTrie and related sub-classes.
+There are three sub-requirements for the PathTrie class.
+1. It must be able to match exact strings
+2. It must be able to match using wildcards
+3. It must be able to group/capture matched sub-strings
 
-The second issue was that PathTrie allows for wildcards, which the FST library does not support. Lucene FST can only check for exact string-matches. Because of this limitation we looked into Lucene Automata despite the issue asking for the FST class. The Automata allows for regexp and may thus be used for less strict matchings. Unfortunately we were unable to find any way of changing the labels of the states within the Automata, and as long as the labels are not changed, the Automata can not be used for anything other than answering if the query is in the given language.
+###### Exact string-matching
+This problem was solved and partly integrated into the PathTrie and related sub-classes.
 
-One third property the PathTrie requires is for regex grouping and capturing. This is not supported by the regexp that Lucene Automata makes use of. For this reason the Automata can not be used for this part of the issue.
+Exact matching with strings is easy enough using Lucene FST. The problem in this case has to do with the labels of the different states in the implementation.
+PathTrie is a generic class that may take any type of data. This data is then supposed to be stored as labels in the respective states. This is not supported by the Lucene FST library which expects the labels to be one of; byte sequence, character sequence, integer sequence, no output, pairs or positive integers. The library does however have a public interface Outputs<T> which is left for the developer to implement. After much struggle with the implementation and discussions within the group we came up with the work-around of converting the data into byte-arrays while storing them and then converting them back to objects upon retrieval.
 
-Since none of the solutions were able to fulfill all 3 criterias for PathTrie, these implementations were left as stubs in their respective files. These files contain comments and examples of usage to show future developers how to use the library. This should help the person to get the required results while using the Lucene library which is otherwise very poorly explained/documented online.
+###### String-matching with wildcards
+This problem was solved but left as an independent class as a future reference.
+
+The second issue was that PathTrie supports the use of wildcards, which the FST library does not. Lucene FST can only check for exact string-matches. Because of this limitation we looked into Lucene Automata despite the issue asking for the FST class. The Automata allows for regexp and may thus be used for less strict matchings. Unfortunately we were unable to find any way of changing the labels of the states within the Automata, and as long as the labels are not changed, the Automata can not be used for anything other than answering if the query is in the given language.
+
+This should help the person to get the required results while using the Lucene library which is otherwise very poorly explained/documented online.
 
 ### Remaining work on Lucene FST
-The PathTrie.java file was modified to store the data as byte-arrays internally to alleviate the switch to Lucene FST in the future. The remaining changes were left out of the main file and were instead implemented as stubs in files of their own. These are left there as references for future developers tasked with refactoring the file so they may combine the two into something that can solve the whole issue. What remains to be done is to merge the two solutions and possibly something more in order to fulfill the three stated criteria and then integrate it into the PathTrie.java file.
+Our patch was able to solve 2 out of 3 sub-criteria of the PathTrie file. The third one remains to be solved. Additionally, one would have to combine the solutions into something that can solve all three problems simultaneously and also integrate this solution into the main PathTrie-file.
 
-Much of the time for this is spent trying to understand PathTrie and even more is spent on Lucene. By implementing these examples we expect at least the Lucene aspect of the problem should be made more approachable. Once you have a good understanding of PathTrie and Elasticsearch the two remaining aspects of the problem are to find a solution to the last problem, and then merging the different solutions with the PathTrie. 
+###### Regex-matching with grouping/capturing
+Solving the third issue is non-trivial. This problem requires regex grouping/capturing which there does not seem to be any support for in Lucene. Solving this issue would therefore be very hard if one was to stick purely to Lucene as requested. Based on the time it took to figure out and implement the solutions to the first two problems we would assume the third one takes somewhere around 10-20 hours.
 
-Based on the time it took to figure out and implement the solutions to the first two problems we would assume the third one takes somewhere between 5-20 hours. The second issue is the major one, merging the solutions in a thoughtful manner is far from trivial. We would guess that this part takes at least 10 hours to plan, construct and test the implementation. The combined solution then needs to be integrated into PathTrie in such a way that it maintains the features and API of the class. The complete time for this step is difficult to estimate, but implementing it and testing it thoroughly seems as though it should take at least 10-15 hours. In total we would expect the remaining FST requirement to take at least 25 hours for a developer who is already accustomed to Elasticsearch and PathTrie.
+###### Merge solutions and integrate them
+Once you have a good understanding of PathTrie and Elasticsearch, merging the solutions and integrating them into PathTrie would probably take at least 10 hours. This estimate includes planning, constructing test-cases and finally the actual implementation.
 
+###### Total work
+In total we would expect the remaining FST requirements to take at least 20 hours for a developer who is already accustomed to Elasticsearch and PathTrie. If a new developer like us attempts to complete the issue, another 5-10 hours would be added upon this estimate to understand the related classes.
 ## Refactor 3: PathTrie Builder
 
 ### Task
