@@ -143,6 +143,7 @@ This UML diagram shows how the class references have changed and also we can see
 ### Task
 
 In the issue they said that they didn't want the params from RestRequest to be modifed by the retieve method in PathTrie.
+> We should further refactor PathTrie so that the params of RestRequest are not modified for each TrieMatchingMethod
 
 ### Carried out work with params
 
