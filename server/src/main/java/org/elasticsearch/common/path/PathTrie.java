@@ -36,7 +36,7 @@ import java.util.Map;
 
 public class PathTrie<T> {
 
-    static enum TrieMatchingMode {
+	enum TrieMatchingMode {
         /*
          * Retrieve only explicitly mapped nodes, no wildcards are
          * matched.
@@ -60,7 +60,7 @@ public class PathTrie<T> {
 
     static EnumSet<TrieMatchingMode> EXPLICIT_OR_ROOT_WILDCARD =
             EnumSet.of(TrieMatchingMode.EXPLICIT_NODES_ONLY, TrieMatchingMode.WILDCARD_ROOT_NODES_ALLOWED);
-    
+
     public interface Decoder {
         String decode(String value);
     }
@@ -84,7 +84,7 @@ public class PathTrie<T> {
     }
 
     //TrieNode class used to be here (and was also public)
-    
+
     private static class TrieNode<T>{
 
         private transient String key;
@@ -273,7 +273,12 @@ public class PathTrie<T> {
          * @param decoder
          * @return the value of the corresponding node
          */
-        private T retrieve(String[] path, int index, Map<String, String> params, PathTrie.TrieMatchingMode trieMatchingMode, Decoder decoder) {
+        private T retrieve(String[] path,
+        		int index,
+        		Map<String, String> params,
+        		PathTrie.TrieMatchingMode trieMatchingMode,
+        		Decoder decoder) {
+
             if (index >= path.length)
                 return null;
 
@@ -467,7 +472,7 @@ public class PathTrie<T> {
             return trie.retrieve(path, params, mode);
         }
     }
-    
+
     public static class PathTrieBuilder<T> {
 
         private final Decoder decoder;
