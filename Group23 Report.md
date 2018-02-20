@@ -73,7 +73,7 @@ String *path*, specifies path where desired value resides in PathTrie.
 Supplier<Map<String,String>> *paramSupplier*, A collection of map objects where each map object which wildcard values are written to.
 
 ##### Contract 
-The function returns an iterator. The iterator should iterate through every possible TrieMatchingMode (EXPLICIT_NODES_ONLY, WILDCARD_ROOT_NODES_ALLOWED, WILDCARD_LEAF_NODES_ALLOWED, WILDCARD_NODES_ALLOWED) and for every iteration, the iterator  should return the value that is found with path for a different TrieMatchingMode.
+The function returns an iterator. The iterator should iterate through every possible TrieMatchingMode and for every iteration, the iterator  should return the value that is found with path for a different TrieMatchingMode.
 
 #### Functional Requirement #4: Insert or update value into PathTrie
 
@@ -190,7 +190,7 @@ Based on the time it took to figure out and implement the solutions to the first
 The last task that was mentioned in the issue was to create a PathTrie Builder, for the sake of making the PathTrie object immutable. 
 
 ### Work carried out on Builder
-An additional nested class was created inside the PathTrie class called PathTrieBuilder. Methods for inserting values into the PathTrie was moved to the PathTrieBuilder
+An additional nested class was created inside the PathTrie class called PathTrieBuilder. Methods for inserting values into the PathTrie was moved to the PathTrieBuilder, to ensure that PathTrie objects cannot be modified. Since the builder is a inner class of PathTrie and it is the only one that should be accesible publicly, the constructor for PathTrie is now private and TrieNode was changed to a private inner class (before it was public, for no practical reason). A function was added to create and return a PathTrie inside the Builder. 
 
 ### Link to patch
 https://github.com/elastic/elasticsearch/compare/master...rka0917:master
