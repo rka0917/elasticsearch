@@ -215,7 +215,7 @@ Niklas - 2 hours
 Rami - 3 hours
 
 #### reading documentation
-Anton - 2 hours
+Anton - 7 hours
 
 Benjamin - 2 hours
 
@@ -259,7 +259,7 @@ Niklas - 3 hours
 Rami - 7 hours
 
 #### writing code
-Anton - 19 hours
+Anton - 14 hours
 
 Benjamin -
 
