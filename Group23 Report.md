@@ -141,7 +141,14 @@ This UML diagram shows how the class references have changed and also we can see
 ## Refactor 1: RestRequest params
 
 ### Task
-params is a hashmap that holds pointers for the parameters that are sent with a REST request. The request uri might contain parameters that are decoded with the function decodeQueryString in RestUtils that uses an implementation of the Decode interface from PathTrie. The implemented decoder REST_DECODER calls the function decodeComponent on a string. decodeQueryString calls decodeComponent but it also extracts a name from the uri that will be the key for the component and add it to the hashmMap(name,parameter).
+
+In the issue they said that they didn't want the params from RestRequest to be modifed by the retieve method in PathTrie.
+
+### Carried out work with params
+
+Not much was actually accomplished with this refactoring in the end due to the difficulties trying to figure out how it is used and the necessity of it. The only "work" done on it was trying to get an understanding of it:
+
+Params is a hashmap that holds pointers for the parameters that are sent with a REST request. The request uri might contain parameters that are decoded with the function decodeQueryString in RestUtils that uses an implementation of the Decode interface from PathTrie. The implemented decoder REST_DECODER calls the function decodeComponent on a string. decodeQueryString calls decodeComponent but it also extracts a name from the uri that will be the key for the component and add it to the hashmMap(name,parameter).
 
 In RestController there is an iterator for allHandlers that match the request with the possible correct handlers. It also passes on the params variable within the RestRequest object to the retrieval method in PathTrie. When a NamedWildCard is needed to find some value, the value will be decoded just like any component found in the uri and added to params with NamedWildCard as the key. This means that the params will only be affected if NamedWildCard is used i.e. the key for the TrieNode is a WildCard.
 The iterator method in RestController calls the iteratior method in PathTrie that runs the retrieval method 4 times. It runs 1 time for every TrieMatchingMode of which there are 4. Because of this they have created a lambda expression that passes on an original copy of params to the iterator in PathTrie through a supplier so that every retrieval will use an original params base.
@@ -150,9 +157,11 @@ After the iteration is done and it has been able to retrieve all the handlers it
 
 There is a Tests-class for RestController whose test-methods doesn’t fail even if the params reset is disabled. This either mean that the don’t have any test that rely on that function or it doesn’t actually serve any purpose any more. Based on a discussion in a pull request  related to this issue however, it doesn’t seem like it is some piece of forgotten code. Running all the test suits also didn’t turn anything up. Running the integration tests however gave a huge amounts of errors and a really long test-log to read through.
 
-It might be possible to find something in that log but there is a huge amount to get through and would take a lot of time. And even if you are able to get a grasp on how it all hangs together it still might take a long time to come up with a good solution. The big issue here is to be able to grasp how params is used and what it affects. After that you might be able to figure out a way to actually perform the refactoring.
+### Remaining work on params
 
-Testing logs from trying to smoke params out:
+Since no refactoring was actually done on this issue, all the work remains on params. There might be some clues to find in the test logs but they are very big and unwieldy making it somewhat difficult. Even if you are able to get a grasp on how it all hangs together it still might take a long time to come up with a good solution making it hard to estimate how much time this would take to do. The big issue here is to be able to grasp how params is used and what it affects. After that you might be able to figure out a way to actually perform the refactoring.
+
+### Testing logs from trying to smoke params out
 
 https://raw.githubusercontent.com/rka0917/elasticsearch/master/Group23_Logs/paramsSearching/Incorrect_Params_Integ_Log_Part1.txt
 
