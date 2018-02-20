@@ -40,7 +40,7 @@ String *path*, a string that represents the path where the value should be store
 T *value*, a value of type T that is inserted into PathTrie at specified path.
 
 ##### Contract
-Given a path and a value, the value should be inserted into the Trie based on that specified path. The result should be that the trie contains the value and can be retrieved when path is specified as parameter for receiving. However, if a value already exists at specified path, the function will not overwrite the current value. No value is returned.
+Given a path and a value, the value will be inserted into the Trie based on that specified path. If a value already exists at specified path, the function will not overwrite the current value.
 
 #### Functional Requirement #2: Retrieve value
 
@@ -73,7 +73,7 @@ String *path*, specifies path where desired value resides in PathTrie.
 Supplier<Map<String,String>> *paramSupplier*, A collection of map objects where each map object which wildcard values are written to.
 
 ##### Contract 
-The function returns an iterator. The iterator should iterate through every possible TrieMatchingMode and for every iteration, the iterator  should return the value that is found with path for a different TrieMatchingMode.
+The function returns an iterator. The iterator will iterate through every possible TrieMatchingMode and for every iteration, the iterator will return the value that is found with path for a different TrieMatchingMode or null if no matching value exists.
 
 #### Functional Requirement #4: Insert or update value into PathTrie
 
@@ -87,7 +87,7 @@ T *value*, a value of type T that is inserted into PathTrie at specified path.
 BiFunction<T, T, T> *updater*, used for when value needs to be updated. 
 
 ##### Contract
-Given a path and a value, the value should be inserted into the Trie based on that specified path. If a value exists for the specified path, then it will be overwritten. 
+Given a path and a value, the value will be inserted into the Trie based on that specified path. If a value exists for the specified path, then it will be overwritten. 
 NOTE: This function/requirement may not be that relevant, since the issue wishes for the PathTrie to be immutable. 
 
 
