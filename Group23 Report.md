@@ -171,10 +171,23 @@ It might be possible to find something in that log but there is a huge amount to
 
 Testing logs from trying to smoke params out:
 
+https://raw.githubusercontent.com/rka0917/elasticsearch/master/Group23_Logs/paramsSearching/Incorrect_Params_Integ_Log_Part1.txt
+
+https://raw.githubusercontent.com/rka0917/elasticsearch/master/Group23_Logs/paramsSearching/Incorrect_Params_Integ_Log_Part2.txt
+
+https://raw.githubusercontent.com/rka0917/elasticsearch/master/Group23_Logs/paramsSearching/Incorrect_Params_Test_Log.txt
+
 ## Test logs
-Overall results with link to a copy of the logs (before/after
-refactoring).
-The refactoring itself is documented by the git log.
+
+Test log before refactoring: 
+
+https://raw.githubusercontent.com/rka0917/elasticsearch/master/Group23_Logs/paramsSearching/Incorrect_Params_Test_Log.txt
+
+Test logs after refactoring: 
+
+https://raw.githubusercontent.com/rka0917/elasticsearch/master/Group23_Logs/refactoringTestLogs/Our_Fork_Integ_Log.txt
+
+https://raw.githubusercontent.com/rka0917/elasticsearch/master/Group23_Logs/refactoringTestLogs/Our_Fork_Test_Log.txt
 
 ## Effort spent
 For each team member, how much time was spent in:
