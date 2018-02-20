@@ -28,82 +28,116 @@ One final important thing to mention here is that when Rami and Niklas tried to 
 ## Requirements affected by functionality being refactored
 PathTrie is a trie structure that is a structure of TrieNodes. Each TrieNode has a string key that represent a pathname, a value and a boolean that tells if the key for the node is a wild card (meaning that it can represent any pathname). These requirements are based on the code implementation (specifically the public methods), rather than an API or requirements document, as there is basically no documentation for this module.
 
-Functional Requirement #1: Insert value into PathTrie
+#### Functional Requirement #1: Insert value into PathTrie
 
-Function: insert()
+Function: *insert()*
 
-Input: 
-String path, a string that represents the path where the value should be stored. If any part of the path is surrounded by curly brackets, it is counted as a wildcard. 
+##### Input: 
+
+String *path*, a string that represents the path where the value should be stored. If any part of the path is surrounded by curly brackets, it is counted as a wildcard. 
     Example: “a/{testB}” → testB = Wildcard
 
-T value, a value of type T that is inserted into PathTrie at specified path.
+T *value*, a value of type T that is inserted into PathTrie at specified path.
 
+##### Description 
 Given a path and a value, the value should be inserted into the Trie based on that specified path. The result should be that the trie contains the value and can be retrieved when path is specified as parameter for receiving. However, if a value already exists at specified path, the function will not overwrite the current value. No value is returned.
 
-Functional Requirement #2: Retrieve value
+#### Functional Requirement #2: Retrieve value
+
 Function: retrieve()
-Input:
-String path, specifies path where desired value resides in PathTrie.
-Optional Map<String, String> params, map object which is used by the retrieve function to write wildcard values to. If this is not set, then params will default to null. 
-Optional TrieMatchingMode trieMatchingMode, Specifies when wildcards are permitted when retrieving value.
-EXPLICIT_NODES_ONLY, means that path in the pathname has to exist to retrieve the resource, no wildcards allowed. 
-WILDCARD_NODES_ALLOWED, means that wildcards are allowed. WILDCARD_LEAF_NODES_ALLOWED, means that wildcards are only allowed for leafnodes. 
-WILDCARD_ROOT_NODES_ALLOWED, means that wildcard is only allowed for the root node. 
+
+##### Input:
+
+String *path*, specifies path where desired value resides in PathTrie.
+
+**Optional** Map<String, String> *params*, map object which is used by the retrieve function to write wildcard values to. If this is not set, then params will default to null. 
+
+**Optional** TrieMatchingMode *trieMatchingMode*, Specifies when wildcards are permitted when retrieving value.
+- EXPLICIT_NODES_ONLY, means that path in the pathname has to exist to retrieve the resource, no wildcards allowed. 
+- WILDCARD_NODES_ALLOWED, means that wildcards are allowed. 
+- WILDCARD_LEAF_NODES_ALLOWED, means that wildcards are only allowed for leafnodes. 
+- WILDCARD_ROOT_NODES_ALLOWED, means that wildcard is only allowed for the root node. 
 If trieMatchingMode isn’t set, it will default to WILDCARD_NODES_ALLOWED.
 
+##### Description 
 Given a path, if there is a value that is stored on that path, it is retrieved if it complies with the wildcard rule trieMatchingMode. Return value is the value corresponding to path or null if nothing was found. If params was specified, it should also contain wildcard names and values if there were any in the path. 
 
-Functional Requirement #3: PathTrie Iterator
-Function: retrieveAll()
-Input:
-String path, specifies path where desired value resides in PathTrie.
-Supplier<Map<String,String>> paramSupplier, A collection of map objects where each map object which wildcard values are written to.
+#### Functional Requirement #3: PathTrie Iterator
 
+Function: retrieveAll()
+
+##### Input:
+
+String *path*, specifies path where desired value resides in PathTrie.
+
+Supplier<Map<String,String>> *paramSupplier*, A collection of map objects where each map object which wildcard values are written to.
+
+##### Description 
 The function returns an iterator. The iterator iterates through every possible TrieMatchingMode (EXPLICIT_NODES_ONLY, WILDCARD_ROOT_NODES_ALLOWED, WILDCARD_LEAF_NODES_ALLOWED, WILDCARD_NODES_ALLOWED) and for every iteration, the iterator returns the value that is found with path for a different TrieMatchingMode.
 
-Functional Requirement #4: Insert or update value into PathTrie
-Function: insertOrUpdate()
-Input:
-String path, a string that represents the path where the value should be stored. If any part of the path is surrounded by curly brackets, it is counted as a wildcard. 
-T value, a value of type T that is inserted into PathTrie at specified path.
-BiFunction<T, T, T> updater, used for when value needs to be updated. 
+#### Functional Requirement #4: Insert or update value into PathTrie
 
+Function: insertOrUpdate()
+
+##### Input:
+String *path*, a string that represents the path where the value should be stored. If any part of the path is surrounded by curly brackets, it is counted as a wildcard. 
+
+T *value*, a value of type T that is inserted into PathTrie at specified path.
+
+BiFunction<T, T, T> *updater*, used for when value needs to be updated. 
+
+##### Description 
 Given a path and a value, the value should be inserted into the Trie based on that specified path. The result should be that the trie contains the value and can be retrieved when path is specified as parameter for receiving. if a value exists for the specified path, then it will be overwritten. 
 NOTE: This function/requirement may not be that relevant, since the issue wishes for the PathTrie to be immutable. 
 
 
 Classes that use the PathTrie class:
-MockHTTPTransport
-RestController
-RestUtils
-PathTrieTests
-RestControllerTests
+- MockHTTPTransport
+- RestController
+- RestUtils
+- PathTrieTests
+- RestControllerTests
 
 ## Existing test cases relating to refactored code
 There exists multiple test methods for the PathTrie functionality:
-testPath(): Tests to insert values at certain path, with some of these paths containing wildcards (e.g value: “one” is stored at path “a/x/*”). Test tries to retrieve a value from certain path and assert that the value is correct. It even checks paths that do not contain values. 
+- testPath(): Tests to insert values at certain path, with some of these paths containing wildcards (e.g value: “one” is stored at path “a/x/\*”). Test tries to retrieve a value from certain path and assert that the value is correct. It even checks paths that do not contain values. 
 In addition, it also checks that it can retrieve the correct parameters when retrieving a value (which are supposed to be the correct wildcards from the paths it retrieved from).
-testEmptyPath(): Test to insert and retrieve a value from the empty path (“/”).
-testDifferentNamesOnDifferentPath(): Tries to retrieve value from a path and check the parameters. Both paths ends with a wildcard. After asserting that parameters has been set correctly, the parameters are cleared and the test tries to retrieve a different value from a different path. The test asserts that the correct values have been retrieved and that the parameters are correctly set.
-testSameNameOnDifferentPath(): Same as above, except that the paths has the same name for the wildcards. 
-testPreferNonWildcardExecution(): Tests to receive values from paths that could fit in several defined paths in the Trie. The assertion checks that the retrieve-instruction favours matching paths that uses the least wildcards.
-testWildcardMatchingModes(): Set different values at different paths and then tries to retrieve resources with different matching modes (e.g EXPLICIT_NODES_ONLY) Assertions checks that the retrieved values follows the rules set by the set matching mode.
-testExplicitMatchingMode(): Tries to retrieve values with the matching mode EXPLICIT_NODES_ONLY. The assertions checks that the retrieve function only return values for matching paths that do not use wildcards.
-testSamePathConcreteResolution():  Tries to get values from paths that consists of only wildcards. 
-testNamedWildcardAndLookupWithWildcard(): Test to specify paths with wildcards when retrieving values. 
-testEscapedSlashWithinUrl(): Tries to insert and receive values where the path contains escaped characters. This test actually uses a special decoder from RestUtils.
+
+- testEmptyPath(): Test to insert and retrieve a value from the empty path (“/”).
+
+- testDifferentNamesOnDifferentPath(): Tries to retrieve value from a path and check the parameters. Both paths ends with a wildcard. After asserting that parameters has been set correctly, the parameters are cleared and the test tries to retrieve a different value from a different path. The test asserts that the correct values have been retrieved and that the parameters are correctly set.
+
+- testSameNameOnDifferentPath(): Same as above, except that the paths has the same name for the wildcards. 
+
+- testPreferNonWildcardExecution(): Tests to receive values from paths that could fit in several defined paths in the Trie. The assertion checks that the retrieve-instruction favours matching paths that uses the least wildcards.
+
+- testWildcardMatchingModes(): Set different values at different paths and then tries to retrieve resources with different matching modes (e.g EXPLICIT_NODES_ONLY) Assertions checks that the retrieved values follows the rules set by the set matching mode.
+
+- testExplicitMatchingMode(): Tries to retrieve values with the matching mode EXPLICIT_NODES_ONLY. The assertions checks that the retrieve function only return values for matching paths that do not use wildcards.
+
+- testSamePathConcreteResolution():  Tries to get values from paths that consists of only wildcards. 
+
+- testNamedWildcardAndLookupWithWildcard(): Test to specify paths with wildcards when retrieving values. 
+
+- testEscapedSlashWithinUrl(): Tries to insert and receive values where the path contains escaped characters. This test actually uses a special decoder from RestUtils.
 
 These tests should preferably still be applicable after refactoring, although some changes may be needed (e.g they need to be updated if we create a PathTrieBuilder).
 
 ## The refactoring carried out
 UML Class diagram of the architecture before refactoring:
+
 https://drive.google.com/file/d/11Z54-5qnUDzZQQ-d023nqF74I_Or4v3u/view?usp=sharing
+
 In this UML diagram we can see the immediate classes that will be affected by any change in the PathTrie, which is the proposed change that we are mainly concentrating on. This gives a better picture of what each entity does and also how they are related, so that we can write appropriate test cases and also ensure the class interaction changes are not causing any regression.
+
+UML Class diagram of the arhcitecture after refactoring:
+
 https://drive.google.com/file/d/1jXFHhz-pjbl0Vh-n_Xb_yVVbpqKwTOoK/view?usp=sharing
+
 This UML diagram shows how the class references have changed and also we can see that the respective newer test modules were added in order to ensure coverage. The major refactoring here is that the builder class that takes over the dependencies from the class PathTrie. And the newer FSTRepresentation added to the PathTrie.
 
 ## Switching to Lucene FST
-In the issue they said that they wanted to replace their current implementation for one using the FST class of the Apache Lucene library.
+In the issue they said that they wanted to replace their current implementation for one using the FST class of the Apache Lucene library:
 > switch PathTrie over to using an FST from Lucene, rather than our own trie implementation
 
 This issue turned out to be harder than expected. We implemented two versions that both solve parts of the requirement. But we were unable to implement the complete refactoring in the given time-frame.
@@ -144,57 +178,93 @@ The refactoring itself is documented by the git log.
 
 ## Effort spent
 For each team member, how much time was spent in:
-plenary discussions/meetings
+
+#### plenary discussions/meetings
 Anton - 7 hours
+
 Benjamin - 7 hours 
+
 Ganesh - 7 hours 
+
 Niklas - 7 hours 
+
 Rami - 7 hours
 
-discussions within parts of the group
+#### discussions within parts of the group
 Anton - 2 hours
+
 Benjamin - 1 hours
+
 Ganesh - 2 hours
+
 Niklas - 2 hours
+
 Rami - 3 hours
 
-reading documentation
+#### reading documentation
 Anton - 2 hours
+
 Benjamin - 2 hours
-Ganesh - 3 hours
-Niklas - 7 hours
-Rami - 1 hours
 
-configuration
+Ganesh - 3 hours
+
+Niklas - 7 hours
+
+Rami - 2 hours
+
+#### configuration
 Anton - 2 hours
+
 Benjamin - 3 hours
+
 Ganesh - 4 hours
+
 Niklas - 2 hours
+
 Rami - 3 hours
 
-analyzing code/output
+#### analyzing code/output
 Anton - 4 hours
+
 Benjamin - 6 hours
+
 Ganesh - 5 hours
+
 Niklas - 6 hours
+
 Rami - 6 hours
-writing documentation
+
+#### writing documentation
 Anton - 3 hours
+
 Benjamin - 
+
 Ganesh - 9 hours
+
 Niklas - 3 hours
+
 Rami - 7 hours
-writing code
+
+#### writing code
 Anton - 19 hours
+
 Benjamin -
+
 Ganesh - 
+
 Niklas - 3 hours
+
 Rami - 4 hours
-running code
+
+#### running code
 Anton - 1 hour
+
 Benjamin - 1 hour
+
 Ganesh - 1 hour
+
 Niklas - 5 hours
+
 Rami - 3 hours 
 
 ## Overall experience
