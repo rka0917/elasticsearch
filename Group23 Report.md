@@ -30,7 +30,7 @@ PathTrie is a trie structure that is a structure of TrieNodes. Each TrieNode has
 
 #### Functional Requirement #1: Insert value into PathTrie
 
-Function: *insert()*
+Function: insert(String *path*, T *value*)
 
 ##### Input: 
 
@@ -39,12 +39,12 @@ String *path*, a string that represents the path where the value should be store
 
 T *value*, a value of type T that is inserted into PathTrie at specified path.
 
-##### Description 
+##### Contract
 Given a path and a value, the value should be inserted into the Trie based on that specified path. The result should be that the trie contains the value and can be retrieved when path is specified as parameter for receiving. However, if a value already exists at specified path, the function will not overwrite the current value. No value is returned.
 
 #### Functional Requirement #2: Retrieve value
 
-Function: retrieve()
+Function: retrieve(String *path*, {optional} Map<String, String> *params*, {optional} TrieMatchingMode *trieMatchingMode*)
 
 ##### Input:
 
@@ -59,12 +59,12 @@ String *path*, specifies path where desired value resides in PathTrie.
 - WILDCARD_ROOT_NODES_ALLOWED, means that wildcard is only allowed for the root node. 
 If trieMatchingMode isn’t set, it will default to WILDCARD_NODES_ALLOWED.
 
-##### Description 
-Given a path, if there is a value that is stored on that path, it is retrieved if it complies with the wildcard rule trieMatchingMode. Return value is the value corresponding to path or null if nothing was found. If params was specified, it should also contain wildcard names and values if there were any in the path. 
+##### Contract
+Given a path, if there is a value that is stored on that path, it is retrieved. Return value is the value corresponding to path or null if nothing was found. 
 
 #### Functional Requirement #3: PathTrie Iterator
 
-Function: retrieveAll()
+Function: retrieveAll(String *path*, Supplier<Map<String,String>> *paramSupplier*)
 
 ##### Input:
 
@@ -72,12 +72,12 @@ String *path*, specifies path where desired value resides in PathTrie.
 
 Supplier<Map<String,String>> *paramSupplier*, A collection of map objects where each map object which wildcard values are written to.
 
-##### Description 
-The function returns an iterator. The iterator iterates through every possible TrieMatchingMode (EXPLICIT_NODES_ONLY, WILDCARD_ROOT_NODES_ALLOWED, WILDCARD_LEAF_NODES_ALLOWED, WILDCARD_NODES_ALLOWED) and for every iteration, the iterator returns the value that is found with path for a different TrieMatchingMode.
+##### Contract 
+The function returns an iterator. The iterator should iterate through every possible TrieMatchingMode (EXPLICIT_NODES_ONLY, WILDCARD_ROOT_NODES_ALLOWED, WILDCARD_LEAF_NODES_ALLOWED, WILDCARD_NODES_ALLOWED) and for every iteration, the iterator  should return the value that is found with path for a different TrieMatchingMode.
 
 #### Functional Requirement #4: Insert or update value into PathTrie
 
-Function: insertOrUpdate()
+Function: insertOrUpdate(String *path*, T *value*, BiFunction<T, T, T> *updater*)
 
 ##### Input:
 String *path*, a string that represents the path where the value should be stored. If any part of the path is surrounded by curly brackets, it is counted as a wildcard. 
@@ -86,12 +86,12 @@ T *value*, a value of type T that is inserted into PathTrie at specified path.
 
 BiFunction<T, T, T> *updater*, used for when value needs to be updated. 
 
-##### Description 
-Given a path and a value, the value should be inserted into the Trie based on that specified path. The result should be that the trie contains the value and can be retrieved when path is specified as parameter for receiving. if a value exists for the specified path, then it will be overwritten. 
+##### Contract
+Given a path and a value, the value should be inserted into the Trie based on that specified path. If a value exists for the specified path, then it will be overwritten. 
 NOTE: This function/requirement may not be that relevant, since the issue wishes for the PathTrie to be immutable. 
 
 
-Classes that use the PathTrie class:
+#### Classes that use the PathTrie class
 - MockHTTPTransport
 - RestController
 - RestUtils
@@ -124,43 +124,23 @@ In addition, it also checks that it can retrieve the correct parameters when ret
 These tests should preferably still be applicable after refactoring, although some changes may be needed (e.g they need to be updated if we create a PathTrieBuilder).
 
 ## The refactoring carried out
+
+### UML diagrams
 UML Class diagram of the architecture before refactoring:
 
 https://drive.google.com/file/d/11Z54-5qnUDzZQQ-d023nqF74I_Or4v3u/view?usp=sharing
 
 In this UML diagram we can see the immediate classes that will be affected by any change in the PathTrie, which is the proposed change that we are mainly concentrating on. This gives a better picture of what each entity does and also how they are related, so that we can write appropriate test cases and also ensure the class interaction changes are not causing any regression.
 
-UML Class diagram of the arhcitecture after refactoring:
+UML Class diagram of the architecture after refactoring:
 
 https://drive.google.com/file/d/1jXFHhz-pjbl0Vh-n_Xb_yVVbpqKwTOoK/view?usp=sharing
 
 This UML diagram shows how the class references have changed and also we can see that the respective newer test modules were added in order to ensure coverage. The major refactoring here is that the builder class that takes over the dependencies from the class PathTrie. And the newer FSTRepresentation added to the PathTrie.
 
-### Link to patch
-https://github.com/elastic/elasticsearch/compare/master...rka0917:master
+## Refactor 1: RestRequest params
 
-## Switching to Lucene FST
-In the issue they said that they wanted to replace their current implementation for one using the FST class of the Apache Lucene library:
-> switch PathTrie over to using an FST from Lucene, rather than our own trie implementation
-
-This issue turned out to be harder than expected. We implemented two versions that both solve parts of the requirement. But we were unable to implement the complete refactoring in the given time-frame.
-
-Initially we had the issue that PathTrie is a generic class that may take any type of data. This is not supported by the Lucene FST library which expects the labels to be one of; byte sequence, character sequence, integer sequence, no output, pairs or positive integers. The library does however have a public interface Outputs<T> which is left for the developer to implement. After much struggle with the implementation and discussions within the group we came up with the work-around of converting the data into byte-arrays while storing them and then converting them back to to objects upon retrieval. This change was implemented and integrated into the PathTrie and related sub-classes.
-
-The second issue was that PathTrie allows for wildcards, which the FST library does not support. Lucene FST can only check for exact string-matches. Because of this limitation we looked into Lucene Automata despite the issue asking for the FST class. The Automata allows for regexp and may thus be used for less strict matchings. Unfortunately we were unable to find any way of changing the labels of the states within the Automata, and as long as the labels are not changed, the Automata can not be used for anything other than answering if the query is in the given language.
-
-One third property the PathTrie requires is for regex grouping and capturing. This is not supported by the regexp that Lucene Automata makes use of. For this reason the Automata can not be used for this part of the issue.
-
-Since none of the solutions were able to fulfill all 3 criterias for PathTrie, these implementations were left as stubs in their respective files. These files contain comments and examples of usage to show future developers how to use the library. This should help the person to get the required results while using the Lucene library which is otherwise very poorly explained/documented online.
-
-### Remaining work on Lucene FST
-The PathTrie.java file was modified to store the data as byte-arrays internally to alleviate the switch to Lucene FST in the future. The remaining changes were left out of the main file and were instead implemented as stubs in files of their own. These are left there as references for future developers tasked with refactoring the file so they may combine the two into something that can solve the whole issue. What remains to be done is to merge the two solutions and possibly something more in order to fulfill the three stated criteria and then integrate it into the PathTrie.java file.
-
-Much of the time for this is spent trying to understand PathTrie and even more is spent on Lucene. By implementing these examples we expect at least the Lucene aspect of the problem should be made more approachable. Once you have a good understanding of PathTrie and Elasticsearch the two remaining aspects of the problem are to find a solution to the last problem, and then merging the different solutions with the PathTrie. 
-
-Based on the time it took to figure out and implement the solutions to the first two problems we would assume the third one takes somewhere between 5-20 hours. The second issue is the major one, merging the solutions in a thoughtful manner is far from trivial. We would guess that this part takes at least 10 hours to plan, construct and test the implementation. The combined solution then needs to be integrated into PathTrie in such a way that it maintains the features and API of the class. The complete time for this step is difficult to estimate, but implementing it and testing it thoroughly seems as though it should take at least 10-15 hours. In total we would expect the remaining FST requirement to take at least 25 hours for a developer who is already accustomed to Elasticsearch and PathTrie.
-
-## RestRequest params
+### Task
 params is a hashmap that holds pointers for the parameters that are sent with a REST request. The request uri might contain parameters that are decoded with the function decodeQueryString in RestUtils that uses an implementation of the Decode interface from PathTrie. The implemented decoder REST_DECODER calls the function decodeComponent on a string. decodeQueryString calls decodeComponent but it also extracts a name from the uri that will be the key for the component and add it to the hashmMap(name,parameter).
 
 In RestController there is an iterator for allHandlers that match the request with the possible correct handlers. It also passes on the params variable within the RestRequest object to the retrieval method in PathTrie. When a NamedWildCard is needed to find some value, the value will be decoded just like any component found in the uri and added to params with NamedWildCard as the key. This means that the params will only be affected if NamedWildCard is used i.e. the key for the TrieNode is a WildCard.
@@ -179,6 +159,41 @@ https://raw.githubusercontent.com/rka0917/elasticsearch/master/Group23_Logs/para
 https://raw.githubusercontent.com/rka0917/elasticsearch/master/Group23_Logs/paramsSearching/Incorrect_Params_Integ_Log_Part2.txt
 
 https://raw.githubusercontent.com/rka0917/elasticsearch/master/Group23_Logs/paramsSearching/Incorrect_Params_Test_Log.txt
+
+## Refactor 2: Switching to Lucene FST
+
+### Task
+In the issue they said that they wanted to replace their current implementation for one using the FST class of the Apache Lucene library:
+> switch PathTrie over to using an FST from Lucene, rather than our own trie implementation
+
+### Carried out work in Lucene FST
+This issue turned out to be harder than expected. We implemented two versions that both solve parts of the requirement. But we were unable to implement the complete refactoring in the given time-frame.
+
+Initially we had the issue that PathTrie is a generic class that may take any type of data. This is not supported by the Lucene FST library which expects the labels to be one of; byte sequence, character sequence, integer sequence, no output, pairs or positive integers. The library does however have a public interface Outputs<T> which is left for the developer to implement. After much struggle with the implementation and discussions within the group we came up with the work-around of converting the data into byte-arrays while storing them and then converting them back to to objects upon retrieval. This change was implemented and integrated into the PathTrie and related sub-classes.
+
+The second issue was that PathTrie allows for wildcards, which the FST library does not support. Lucene FST can only check for exact string-matches. Because of this limitation we looked into Lucene Automata despite the issue asking for the FST class. The Automata allows for regexp and may thus be used for less strict matchings. Unfortunately we were unable to find any way of changing the labels of the states within the Automata, and as long as the labels are not changed, the Automata can not be used for anything other than answering if the query is in the given language.
+
+One third property the PathTrie requires is for regex grouping and capturing. This is not supported by the regexp that Lucene Automata makes use of. For this reason the Automata can not be used for this part of the issue.
+
+Since none of the solutions were able to fulfill all 3 criterias for PathTrie, these implementations were left as stubs in their respective files. These files contain comments and examples of usage to show future developers how to use the library. This should help the person to get the required results while using the Lucene library which is otherwise very poorly explained/documented online.
+
+### Remaining work on Lucene FST
+The PathTrie.java file was modified to store the data as byte-arrays internally to alleviate the switch to Lucene FST in the future. The remaining changes were left out of the main file and were instead implemented as stubs in files of their own. These are left there as references for future developers tasked with refactoring the file so they may combine the two into something that can solve the whole issue. What remains to be done is to merge the two solutions and possibly something more in order to fulfill the three stated criteria and then integrate it into the PathTrie.java file.
+
+Much of the time for this is spent trying to understand PathTrie and even more is spent on Lucene. By implementing these examples we expect at least the Lucene aspect of the problem should be made more approachable. Once you have a good understanding of PathTrie and Elasticsearch the two remaining aspects of the problem are to find a solution to the last problem, and then merging the different solutions with the PathTrie. 
+
+Based on the time it took to figure out and implement the solutions to the first two problems we would assume the third one takes somewhere between 5-20 hours. The second issue is the major one, merging the solutions in a thoughtful manner is far from trivial. We would guess that this part takes at least 10 hours to plan, construct and test the implementation. The combined solution then needs to be integrated into PathTrie in such a way that it maintains the features and API of the class. The complete time for this step is difficult to estimate, but implementing it and testing it thoroughly seems as though it should take at least 10-15 hours. In total we would expect the remaining FST requirement to take at least 25 hours for a developer who is already accustomed to Elasticsearch and PathTrie.
+
+## Refactor 3: PathTrie Builder
+
+### Task
+The last task that was mentioned in the issue was to create a PathTrie Builder, for the sake of making the PathTrie object immutable. 
+
+### Work carried out on Builder
+An additional nested class was created inside the PathTrie class called PathTrieBuilder. Methods for inserting values into the PathTrie was moved to the PathTrieBuilder
+
+### Link to patch
+https://github.com/elastic/elasticsearch/compare/master...rka0917:master
 
 ## Test logs
 
@@ -293,3 +308,5 @@ It was also odd that we encountered warnings on windows computers, which threw u
 What we have learned from this project is that there is a lot of time that there is most likely going to be very little time spent on coding and more time on actually understand the project itself and looking through code/documentation and discussing things.
 
 In hindsight, we should have investigated the issue further before deciding on using that as the assignment. We could have spotted that the documentation for the code was a little bit lackluster and that it was hard to understand the code. We also should have communicated more during the beginning and middle of the project. Most of the communication happened unfortunately at the end of the week. 
+
+To summarize, we learnt about the importance of proper documentation, as it would have saved us a lot of time and maybe even enabled us to finish the task that we set out to do. That is very important when you are working on open-source. 
