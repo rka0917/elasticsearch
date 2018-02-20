@@ -338,7 +338,7 @@ public abstract class RestRequest implements ToXContent.Params {
             throw new IllegalArgumentException("Failed to parse long parameter [" + key + "] with value [" + sValue + "]", e);
         }
     }
-    
+
     /**
      * Take a key and extract the boolean value from the corresponding string.
      * @param key We want to get the boolean corresponding to this key
@@ -355,12 +355,13 @@ public abstract class RestRequest implements ToXContent.Params {
             return Booleans.parseBoolean(rawParam, defaultValue);
         }
     }
-    
+
     /**
      * Take a key and extract the boolean value from the corresponding string.
      * @param key We want to get the boolean corresponding to this key
      * @param defaultValue value use if there is no corresponding string or if the length of the corresponding string is the empty string
-     * @return the corresponding boolean or the defaultValue if there is no corresponding string or if the length of the corresponding string is 0
+     * @return the corresponding boolean or the defaultValue if there is no
+	 * corresponding string or if the length of the corresponding string is 0
      */
     @Override
     public Boolean paramAsBoolean(String key, Boolean defaultValue) {
@@ -404,7 +405,8 @@ public abstract class RestRequest implements ToXContent.Params {
     /**
      * Take a key and return the corresponding string as an array (split the string at commas).
      * @param key We want to get the string corresponding to this key
-     * @return the corresponding string as an array or an empty array if the array is empty or only consist of one element which is "*" or "_all"
+     * @return the corresponding string as an array or an empty array if
+     * the array is empty or only consist of one element which is "*" or "_all"
      */
     public String[] paramAsStringArrayOrEmptyIfAll(String key) {
         String[] params = paramAsStringArray(key, Strings.EMPTY_ARRAY);
@@ -436,7 +438,7 @@ public abstract class RestRequest implements ToXContent.Params {
 
     /**
      * If there is any content then call {@code applyParser} with the parser, otherwise do nothing.
-     * @param applyParser 
+     * @param applyParser
      * @throws this method can throw IOException
      */
     public final void applyContentParser(CheckedConsumer<XContentParser, IOException> applyParser) throws IOException {
@@ -518,7 +520,7 @@ public abstract class RestRequest implements ToXContent.Params {
      * Parses the given content type string for the media type. This method currently ignores parameters.
      * @param header the content to be parsed
      * @throws this method can throw IllegalArgumentException
-     * @return the corresponding XContentType 
+     * @return the corresponding XContentType
      */
     // TODO stop ignoring parameters such as charset...
     private static XContentType parseContentType(List<String> header) {

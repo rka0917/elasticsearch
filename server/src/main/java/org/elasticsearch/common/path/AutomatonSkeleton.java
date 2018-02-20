@@ -73,7 +73,6 @@ public class AutomatonSkeleton {
 		};
 
 		// Test one String at a time
-		String result = null;
 		for (String s : tests) {
 			int state = 0;
 			for (char c : s.toCharArray()) {
@@ -84,8 +83,12 @@ public class AutomatonSkeleton {
 					break;
 				}
 			}
-			result = state != -1 && runnable.isAccept(state) ? s + " is part of the language" : s + " is NOT part of the language";
-			System.out.println(result);
+
+			if (state != -1 && runnable.isAccept(state)) {
+				System.out.println(s + " is part of the language");
+			} else {
+				System.out.println(s + " is NOT part of the language");
+			}
 		}
     }
 }
